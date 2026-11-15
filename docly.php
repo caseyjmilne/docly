@@ -28,6 +28,7 @@ define( 'DOCLY_URL', plugin_dir_url( __FILE__ ) );
 define( 'DOCLY_OPTION_DOCS_PAGE', 'docly_docs_page_id' );
 
 require_once DOCLY_PATH . 'includes/admin.php';
+require_once DOCLY_PATH . 'includes/template.php';
 
 /**
  * Activation: ensure a "docs" page exists and store it as the main Documentation page.
