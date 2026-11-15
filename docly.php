@@ -4,7 +4,7 @@
  * Plugin URI:        https://github.com/caseyjmilne/docly
  * Description:       Documentation management for WordPress.
  * Version:           0.1.0
- * Requires at least: 6.0
+ * Requires at least: 6.6
  * Requires PHP:      7.4
  * Author:            Casey Milne
  * License:           GPL-2.0-or-later
@@ -26,6 +26,8 @@ define( 'DOCLY_URL', plugin_dir_url( __FILE__ ) );
  * Option key storing the ID of the main Documentation page.
  */
 define( 'DOCLY_OPTION_DOCS_PAGE', 'docly_docs_page_id' );
+
+require_once DOCLY_PATH . 'includes/admin.php';
 
 /**
  * Activation: ensure a "docs" page exists and store it as the main Documentation page.
