@@ -21,6 +21,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 <body <?php body_class( 'docly-docs' ); ?>>
 <?php wp_body_open(); ?>
 
+<header id="docly-header" class="docly-header">
+	<div class="docly-header__brand">
+		<?php if ( has_custom_logo() ) : ?>
+			<?php the_custom_logo(); ?>
+		<?php else : ?>
+			<p class="site-title">
+				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a>
+			</p>
+		<?php endif; ?>
+	</div>
+</header>
+
 <main id="docly-docs">
 	<h1>DOCS</h1>
 </main>
