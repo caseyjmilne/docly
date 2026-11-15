@@ -1,41 +1,88 @@
-import { useEffect, useState } from '@wordpress/element';
+import { useCallback, useEffect, useState } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
+import { addQueryArgs } from '@wordpress/url';
+import { useDebounce } from '@wordpress/compose';
+import { decodeEntities } from '@wordpress/html-entities';
 import { __ } from '@wordpress/i18n';
 import {
 	Button,
 	Card,
 	CardBody,
 	CardHeader,
+	ComboboxControl,
 	Notice,
-	SelectControl,
 	Spinner,
 } from '@wordpress/components';
 
 const OPTION = 'docly_docs_page_id';
+const PAGE_FIELDS = 'id,title';
+
+const toOption = ( page ) => ( {
+	value: page.id,
+	label: decodeEntities( page.title.rendered ) || __( '(no title)', 'docly' ),
+} );
 
 export default function App() {
-	const [ pages, setPages ] = useState( [] );
 	const [ pageId, setPageId ] = useState( 0 );
+	const [ selected, setSelected ] = useState( null );
+	const [ results, setResults ] = useState( [] );
+	const [ searching, setSearching ] = useState( false );
 	const [ loading, setLoading ] = useState( true );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 
-	useEffect( () => {
-		Promise.all( [
-			apiFetch( {
-				path: '/wp/v2/pages?per_page=100&status=publish&orderby=title&order=asc&_fields=id,title',
+	const searchPages = useCallback( ( search ) => {
+		setSearching( true );
+		apiFetch( {
+			path: addQueryArgs( '/wp/v2/pages', {
+				search,
+				per_page: 20,
+				status: 'publish',
+				_fields: PAGE_FIELDS,
 			} ),
-			apiFetch( { path: '/wp/v2/settings' } ),
-		] )
-			.then( ( [ pageList, settings ] ) => {
-				setPages( pageList );
-				setPageId( settings[ OPTION ] || 0 );
+		} )
+			.then( ( pages ) => setResults( pages.map( toOption ) ) )
+			.catch( () => setResults( [] ) )
+			.finally( () => setSearching( false ) );
+	}, [] );
+
+	const debouncedSearch = useDebounce( searchPages, 300 );
+
+	useEffect( () => {
+		apiFetch( { path: '/wp/v2/settings' } )
+			.then( ( settings ) => {
+				const id = settings[ OPTION ] || 0;
+				setPageId( id );
+
+				if ( ! id ) {
+					return;
+				}
+
+				return apiFetch( {
+					path: addQueryArgs( `/wp/v2/pages/${ id }`, {
+						_fields: PAGE_FIELDS,
+					} ),
+				} )
+					.then( ( page ) => setSelected( toOption( page ) ) )
+					.catch( () => setSelected( null ) );
 			} )
 			.catch( ( error ) =>
 				setNotice( { status: 'error', message: error.message } )
 			)
 			.finally( () => setLoading( false ) );
-	}, [] );
+
+		searchPages( '' );
+	}, [ searchPages ] );
+
+	const options = selected
+		? [ selected, ...results.filter( ( o ) => o.value !== selected.value ) ]
+		: results;
+
+	const onChange = ( value ) => {
+		const id = value ? parseInt( value, 10 ) : 0;
+		setPageId( id );
+		setSelected( options.find( ( o ) => o.value === id ) || null );
+	};
 
 	const save = () => {
 		setSaving( true );
@@ -57,14 +104,6 @@ export default function App() {
 			)
 			.finally( () => setSaving( false ) );
 	};
-
-	const options = [
-		{ label: __( '— Select a page —', 'docly' ), value: 0 },
-		...pages.map( ( page ) => ( {
-			label: page.title.rendered || __( '(no title)', 'docly' ),
-			value: page.id,
-		} ) ),
-	];
 
 	return (
 		<>
@@ -88,17 +127,19 @@ export default function App() {
 						<Spinner />
 					) : (
 						<>
-							<SelectControl
+							<ComboboxControl
 								label={ __( 'Main Docs Page', 'docly' ) }
 								help={ __(
-									'The page used as the main Documentation page.',
+									'Start typing to search published pages.',
 									'docly'
 								) }
-								value={ pageId }
+								value={ pageId || null }
 								options={ options }
-								onChange={ ( value ) =>
-									setPageId( parseInt( value, 10 ) )
-								}
+								onChange={ onChange }
+								onFilterValueChange={ debouncedSearch }
+								isLoading={ searching }
+								allowReset
+								__next40pxDefaultSize
 								__nextHasNoMarginBottom
 							/>
 							<Button
