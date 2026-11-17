@@ -27,13 +27,25 @@ define( 'DOCLY_URL', plugin_dir_url( __FILE__ ) );
  */
 define( 'DOCLY_OPTION_DOCS_PAGE', 'docly_docs_page_id' );
 
+require_once DOCLY_PATH . 'includes/post-types.php';
 require_once DOCLY_PATH . 'includes/admin.php';
 require_once DOCLY_PATH . 'includes/template.php';
 
 /**
- * Activation: ensure a "docs" page exists and store it as the main Documentation page.
+ * Activation: register post types, ensure the main Docs page exists, flush rewrites.
  */
 function docly_activate() {
+	docly_register_post_type();
+	docly_ensure_docs_page();
+	update_option( 'docly_version', DOCLY_VERSION );
+	flush_rewrite_rules();
+}
+register_activation_hook( __FILE__, 'docly_activate' );
+
+/**
+ * Ensure a "docs" page exists and store it as the main Documentation page.
+ */
+function docly_ensure_docs_page() {
 	$page_id = (int) get_option( DOCLY_OPTION_DOCS_PAGE );
 
 	// Reuse the stored page if it still exists and isn't trashed.
@@ -61,10 +73,7 @@ function docly_activate() {
 	if ( $page_id && ! is_wp_error( $page_id ) ) {
 		update_option( DOCLY_OPTION_DOCS_PAGE, (int) $page_id );
 	}
-
-	update_option( 'docly_version', DOCLY_VERSION );
 }
-register_activation_hook( __FILE__, 'docly_activate' );
 
 /**
  * Deactivation: nothing destructive; leave the page and option in place.

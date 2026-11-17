@@ -39,6 +39,16 @@ function docly_add_admin_page() {
 		'docly_render_admin_page',
 		'dashicons-book'
 	);
+
+	// Same slug as the parent, so the settings app keeps the toplevel_page_docly hook.
+	add_submenu_page(
+		'docly',
+		__( 'Docly Settings', 'docly' ),
+		__( 'Settings', 'docly' ),
+		'manage_options',
+		'docly',
+		'docly_render_admin_page'
+	);
 }
 add_action( 'admin_menu', 'docly_add_admin_page' );
 
