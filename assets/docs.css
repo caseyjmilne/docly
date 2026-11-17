@@ -38,21 +38,28 @@
 	padding: 0;
 }
 
-.docly-nav__link {
+.docly-nav .docly-nav__link,
+.docly-nav .docly-nav__link:visited {
 	display: block;
 	padding: 6px 12px;
 	border-radius: 4px;
-	color: inherit;
+	background: transparent;
+	color: #1e1e1e;
 	text-decoration: none;
 }
 
-.docly-nav__link:hover,
-.docly-nav__link:focus-visible {
+.docly-nav .docly-nav__link:hover,
+.docly-nav .docly-nav__link:focus-visible {
 	background: #f0f0f0;
+	color: #1e1e1e;
 }
 
-.docly-nav__link.is-active {
-	background: #e7f0fa;
+.docly-nav .docly-nav__link.is-active,
+.docly-nav .docly-nav__link.is-active:visited,
+.docly-nav .docly-nav__link.is-active:hover,
+.docly-nav .docly-nav__link.is-active:focus-visible {
+	background: #2271b1;
+	color: #fff;
 	font-weight: 600;
 }
 
