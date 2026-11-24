@@ -22,7 +22,7 @@ function docly_register_position_meta() {
 		'type'              => 'integer',
 		'single'            => true,
 		'show_in_rest'      => true,
-		'sanitize_callback' => 'intval',
+		'sanitize_callback' => 'absint',
 	);
 
 	register_post_meta(

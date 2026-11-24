@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 import { decodeEntities } from '@wordpress/html-entities';
 import { __, sprintf } from '@wordpress/i18n';
-import { Notice, Spinner } from '@wordpress/components';
+import { Button, Notice, Spinner } from '@wordpress/components';
 import {
 	DndContext,
 	DragOverlay,
@@ -18,8 +18,7 @@ import {
 import {
 	SortableContext,
 	arrayMove,
-	rectSortingStrategy,
-	sortableKeyboardCoordinates,
+		sortableKeyboardCoordinates,
 	useSortable,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
@@ -154,20 +153,13 @@ function SortableDoc( { doc } ) {
 	);
 }
 
-function DocList( { containerKey, docIds, docs } ) {
-	const { setNodeRef, isOver } = useDroppable( {
-		id: zoneDndId( containerKey ),
-	} );
-
+function DocList( { docIds, docs } ) {
 	return (
 		<SortableContext
 			items={ docIds.map( docDndId ) }
 			strategy={ verticalListSortingStrategy }
 		>
-			<ul
-				ref={ setNodeRef }
-				className={ 'docly-pos__docs' + ( isOver ? ' is-over' : '' ) }
-			>
+			<ul className="docly-pos__docs">
 				{ docIds.map( ( id ) => (
 					<SortableDoc key={ id } doc={ docs[ id ] } />
 				) ) }
@@ -181,21 +173,97 @@ function DocList( { containerKey, docIds, docs } ) {
 	);
 }
 
-function GroupHeader( { name, count, handleProps = {} } ) {
+function Chevron( { open, onToggle, name } ) {
 	return (
-		<div className="docly-pos__group-header" { ...handleProps }>
-			{ handleProps.role && (
-				<span className="docly-pos__grip" aria-hidden="true">
-					⋮⋮
-				</span>
+		<button
+			type="button"
+			className={ 'docly-pos__chevron' + ( open ? ' is-open' : '' ) }
+			aria-expanded={ open }
+			aria-label={ sprintf(
+				/* translators: %s: group name */
+				open ? __( 'Collapse %s', 'docly' ) : __( 'Expand %s', 'docly' ),
+				name
 			) }
-			<span className="docly-pos__group-name">{ name }</span>
+			onClick={ onToggle }
+		>
+			<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+				<path d="M10 6 8.6 7.4l4.6 4.6-4.6 4.6L10 18l6-6z" />
+			</svg>
+		</button>
+	);
+}
+
+function GroupHeader( { name, count, open, onToggle, handleProps } ) {
+	return (
+		<div className="docly-pos__group-header">
+			{ onToggle && (
+				<Chevron open={ open } onToggle={ onToggle } name={ name } />
+			) }
+			<span
+				className={
+					'docly-pos__group-handle' + ( handleProps ? ' is-draggable' : '' )
+				}
+				{ ...( handleProps || {} ) }
+			>
+				{ handleProps && (
+					<span className="docly-pos__grip" aria-hidden="true">
+						⋮⋮
+					</span>
+				) }
+				<span className="docly-pos__group-name">{ name }</span>
+			</span>
 			<span className="docly-pos__count">{ count }</span>
 		</div>
 	);
 }
 
-function SortableGroup( { group, docIds, docs } ) {
+/**
+ * A group card. The whole card is a drop zone, so docs can be dropped on a
+ * collapsed group (or its header) and are appended to the end.
+ */
+function GroupCard( {
+	containerKey,
+	name,
+	docIds,
+	docs,
+	open,
+	onToggle,
+	sortable,
+	className = '',
+} ) {
+	const { setNodeRef: setDropRef, isOver } = useDroppable( {
+		id: zoneDndId( containerKey ),
+	} );
+
+	return (
+		<section
+			ref={ sortable?.setNodeRef }
+			style={ sortable?.style }
+			className={
+				'docly-pos__group' +
+				( className ? ' ' + className : '' ) +
+				( sortable?.isDragging ? ' is-dragging' : '' ) +
+				( open ? '' : ' is-collapsed' )
+			}
+		>
+			<div
+				ref={ setDropRef }
+				className={ 'docly-pos__group-inner' + ( isOver ? ' is-over' : '' ) }
+			>
+				<GroupHeader
+					name={ name }
+					count={ docIds.length }
+					open={ open }
+					onToggle={ onToggle }
+					handleProps={ sortable?.handleProps }
+				/>
+				{ open && <DocList docIds={ docIds } docs={ docs } /> }
+			</div>
+		</section>
+	);
+}
+
+function SortableGroup( { group, ...props } ) {
 	const {
 		attributes,
 		listeners,
@@ -206,22 +274,37 @@ function SortableGroup( { group, docIds, docs } ) {
 	} = useSortable( { id: groupDndId( group.id ) } );
 
 	return (
-		<section
-			ref={ setNodeRef }
-			className={ 'docly-pos__group' + ( isDragging ? ' is-dragging' : '' ) }
-			style={ {
-				transform: CSS.Transform.toString( transform ),
-				transition,
+		<GroupCard
+			{ ...props }
+			containerKey={ group.id }
+			name={ group.name }
+			sortable={ {
+				setNodeRef,
+				isDragging,
+				handleProps: { ...attributes, ...listeners },
+				style: {
+					transform: CSS.Transform.toString( transform ),
+					transition,
+				},
 			} }
-		>
-			<GroupHeader
-				name={ group.name }
-				count={ docIds.length }
-				handleProps={ { ...attributes, ...listeners } }
-			/>
-			<DocList containerKey={ group.id } docIds={ docIds } docs={ docs } />
-		</section>
+		/>
 	);
+}
+
+const COLLAPSED_KEY = 'docly-pos-collapsed';
+
+function loadCollapsed() {
+	try {
+		return JSON.parse( window.localStorage.getItem( COLLAPSED_KEY ) ) || [];
+	} catch ( e ) {
+		return [];
+	}
+}
+
+function storeCollapsed( keys ) {
+	try {
+		window.localStorage.setItem( COLLAPSED_KEY, JSON.stringify( keys ) );
+	} catch ( e ) {}
 }
 
 export default function PositioningTab() {
@@ -229,6 +312,19 @@ export default function PositioningTab() {
 	const [ activeId, setActiveId ] = useState( null );
 	const [ status, setStatus ] = useState( 'idle' );
 	const [ error, setError ] = useState( null );
+	const [ collapsed, setCollapsed ] = useState( loadCollapsed );
+
+	const updateCollapsed = ( keys ) => {
+		setCollapsed( keys );
+		storeCollapsed( keys );
+	};
+
+	const toggle = ( key ) =>
+		updateCollapsed(
+			collapsed.includes( key )
+				? collapsed.filter( ( k ) => k !== key )
+				: [ ...collapsed, key ]
+		);
 
 	// Last state confirmed by the server, used to compute term moves.
 	const saved = useRef( null );
@@ -352,7 +448,9 @@ export default function PositioningTab() {
 		const from = findContainer( active.id );
 		const to = findContainer( over.id );
 
-		if ( ! from || ! to || from === to ) {
+		// Collapsed groups don't render their docs, so moving the dragged doc
+		// into one mid-drag would unmount it. Those moves happen on drop.
+		if ( ! from || ! to || from === to || collapsed.includes( to ) ) {
 			return;
 		}
 
@@ -404,7 +502,26 @@ export default function PositioningTab() {
 			const key = findContainer( active.id );
 			const overParsed = parseDndId( over.id );
 
-			if ( key && overParsed.type === 'doc' && key === findContainer( over.id ) ) {
+			const overKey = findContainer( over.id );
+
+			if ( key && overKey && key !== overKey ) {
+				// Dropped on a collapsed group: append to the end of it.
+				next = {
+					...board,
+					containers: {
+						...containers,
+						[ key ]: containers[ key ].filter(
+							( id ) => id !== activeParsed.id
+						),
+						[ overKey ]: [
+							...containers[ overKey ].filter(
+								( id ) => id !== activeParsed.id
+							),
+							activeParsed.id,
+						],
+					},
+				};
+			} else if ( key && overParsed.type === 'doc' && key === overKey ) {
 				const list = containers[ key ];
 				const from = list.indexOf( activeParsed.id );
 				const to = list.indexOf( overParsed.id );
@@ -443,6 +560,24 @@ export default function PositioningTab() {
 						'docly'
 					) }
 				</p>
+				<span className="docly-pos__actions">
+					<Button
+						variant="tertiary"
+						size="small"
+						onClick={ () => updateCollapsed( [] ) }
+					>
+						{ __( 'Expand all', 'docly' ) }
+					</Button>
+					<Button
+						variant="tertiary"
+						size="small"
+						onClick={ () =>
+							updateCollapsed( Object.keys( containers ) )
+						}
+					>
+						{ __( 'Collapse all', 'docly' ) }
+					</Button>
+				</span>
 				<span className="docly-pos__save-status" aria-live="polite">
 					{ status === 'saving' && __( 'Saving…', 'docly' ) }
 					{ status === 'saved' && __( 'Saved', 'docly' ) }
@@ -470,7 +605,7 @@ export default function PositioningTab() {
 				<div className="docly-pos__board">
 					<SortableContext
 						items={ groups.map( ( g ) => groupDndId( g.id ) ) }
-						strategy={ rectSortingStrategy }
+						strategy={ verticalListSortingStrategy }
 					>
 						{ groups.map( ( group ) => (
 							<SortableGroup
@@ -478,21 +613,21 @@ export default function PositioningTab() {
 								group={ group }
 								docIds={ containers[ group.id ] }
 								docs={ docs }
+								open={ ! collapsed.includes( group.id ) }
+								onToggle={ () => toggle( group.id ) }
 							/>
 						) ) }
 					</SortableContext>
 
-					<section className="docly-pos__group is-ungrouped">
-						<GroupHeader
-							name={ __( 'Ungrouped', 'docly' ) }
-							count={ containers[ UNGROUPED ].length }
-						/>
-						<DocList
-							containerKey={ UNGROUPED }
-							docIds={ containers[ UNGROUPED ] }
-							docs={ docs }
-						/>
-					</section>
+					<GroupCard
+						containerKey={ UNGROUPED }
+						name={ __( 'Ungrouped', 'docly' ) }
+						docIds={ containers[ UNGROUPED ] }
+						docs={ docs }
+						open={ ! collapsed.includes( UNGROUPED ) }
+						onToggle={ () => toggle( UNGROUPED ) }
+						className="is-ungrouped"
+					/>
 				</div>
 
 				<DragOverlay>
@@ -504,6 +639,7 @@ export default function PositioningTab() {
 							<GroupHeader
 								name={ activeGroup.name }
 								count={ containers[ activeGroup.id ].length }
+								handleProps={ {} }
 							/>
 						</div>
 					) }
