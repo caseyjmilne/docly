@@ -165,6 +165,22 @@ function docly_enqueue_docs_assets() {
 		);
 	}
 
+	$text_color = docly_get_text_color();
+	if ( $text_color ) {
+		/*
+		 * Same specificity approach as the background. Theme.json element
+		 * styles can also color headings directly, so headings in the Docly
+		 * header, nav and article inherit the chosen color. Links inside
+		 * article content keep the theme's link color.
+		 */
+		$css .= sprintf(
+			' html body.docly-docs { color: %1$s; }'
+			. ' html body.docly-docs :is(.docly-header, .docly-layout) :is(h1, h2, h3, h4, h5, h6),'
+			. ' html body.docly-docs .docly-header .site-title a { color: inherit; }',
+			$text_color
+		);
+	}
+
 	wp_add_inline_style( 'docly-docs', $css );
 
 	wp_enqueue_script(

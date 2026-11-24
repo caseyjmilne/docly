@@ -48,7 +48,19 @@ function docly_register_settings() {
 		array(
 			'type'              => 'string',
 			'description'       => __( 'Docs page background color (hex). Empty inherits the theme background.', 'docly' ),
-			'sanitize_callback' => 'docly_sanitize_bg_color',
+			'sanitize_callback' => 'docly_sanitize_color',
+			'show_in_rest'      => true,
+			'default'           => '',
+		)
+	);
+
+	register_setting(
+		'docly',
+		DOCLY_OPTION_TEXT_COLOR,
+		array(
+			'type'              => 'string',
+			'description'       => __( 'Docs page text color (hex). Empty inherits the theme text color.', 'docly' ),
+			'sanitize_callback' => 'docly_sanitize_color',
 			'show_in_rest'      => true,
 			'default'           => '',
 		)

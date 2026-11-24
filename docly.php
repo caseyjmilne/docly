@@ -40,6 +40,11 @@ define( 'DOCLY_MAX_MAX_WIDTH', 3840 );
  */
 define( 'DOCLY_OPTION_BG_COLOR', 'docly_bg_color' );
 
+/**
+ * Option key for the docs page text color. Empty = inherit from theme.
+ */
+define( 'DOCLY_OPTION_TEXT_COLOR', 'docly_text_color' );
+
 require_once DOCLY_PATH . 'includes/post-types.php';
 require_once DOCLY_PATH . 'includes/positions.php';
 require_once DOCLY_PATH . 'includes/rest.php';
@@ -143,13 +148,13 @@ function docly_sanitize_max_width( $value ) {
 }
 
 /**
- * Sanitize a background color: a hex color (#rgb, #rgba, #rrggbb or
- * #rrggbbaa), or empty to inherit the theme background.
+ * Sanitize a hex color (#rgb, #rgba, #rrggbb or #rrggbbaa). Anything else
+ * returns '' (inherit from theme).
  *
  * @param mixed $value Raw value.
  * @return string
  */
-function docly_sanitize_bg_color( $value ) {
+function docly_sanitize_color( $value ) {
 	$value = strtolower( trim( (string) $value ) );
 
 	return preg_match( '/^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/', $value ) ? $value : '';
@@ -161,5 +166,14 @@ function docly_sanitize_bg_color( $value ) {
  * @return string
  */
 function docly_get_bg_color() {
-	return docly_sanitize_bg_color( get_option( DOCLY_OPTION_BG_COLOR, '' ) );
+	return docly_sanitize_color( get_option( DOCLY_OPTION_BG_COLOR, '' ) );
+}
+
+/**
+ * Get the docs page text color, or '' to inherit from the theme.
+ *
+ * @return string
+ */
+function docly_get_text_color() {
+	return docly_sanitize_color( get_option( DOCLY_OPTION_TEXT_COLOR, '' ) );
 }
