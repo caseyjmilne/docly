@@ -49,23 +49,74 @@ function docly_is_docs_page() {
 }
 
 /**
- * Get all published docs for the navigation.
+ * Get the docs navigation: one section per doc group in position order,
+ * then ungrouped docs. Empty sections are skipped.
  *
- * @return WP_Post[]
+ * @return array[] Each item: array( 'group' => WP_Term|null, 'docs' => WP_Post[] ).
  */
-function docly_get_docs() {
-	return get_posts(
+function docly_get_nav_sections() {
+	$sections = array();
+
+	foreach ( docly_get_ordered_groups() as $group ) {
+		$docs = docly_get_ordered_docs(
+			array(
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+				'tax_query' => array(
+					array(
+						'taxonomy'         => 'doc_group',
+						'terms'            => $group->term_id,
+						'include_children' => false,
+					),
+				),
+			)
+		);
+
+		if ( $docs ) {
+			$sections[] = array(
+				'group' => $group,
+				'docs'  => $docs,
+			);
+		}
+	}
+
+	$ungrouped = docly_get_ordered_docs(
 		array(
-			'post_type'      => 'doc',
-			'post_status'    => 'publish',
-			'posts_per_page' => -1,
-			'orderby'        => array(
-				'menu_order' => 'ASC',
-				'title'      => 'ASC',
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'doc_group',
+					'operator' => 'NOT EXISTS',
+				),
 			),
-			'no_found_rows'  => true,
 		)
 	);
+
+	if ( $ungrouped ) {
+		$sections[] = array(
+			'group' => null,
+			'docs'  => $ungrouped,
+		);
+	}
+
+	return $sections;
+}
+
+/**
+ * Flatten nav sections into a unique list of docs, in display order.
+ *
+ * @param array[] $sections From docly_get_nav_sections().
+ * @return WP_Post[]
+ */
+function docly_get_docs( $sections ) {
+	$docs = array();
+
+	foreach ( $sections as $section ) {
+		foreach ( $section['docs'] as $doc ) {
+			$docs[ $doc->ID ] = $doc;
+		}
+	}
+
+	return array_values( $docs );
 }
 
 /**

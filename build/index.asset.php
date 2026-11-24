@@ -1,5 +1,7 @@
 <?php return array(
 	'dependencies' => array(
+		'react',
+		'react-dom',
 		'react-jsx-runtime',
 		'wp-api-fetch',
 		'wp-components',
@@ -9,5 +11,5 @@
 		'wp-i18n',
 		'wp-url'
 	),
-	'version' => 'bdec053cb9f55db6d5ac'
+	'version' => '424a199d447b5264f160'
 );

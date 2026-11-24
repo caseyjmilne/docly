@@ -113,5 +113,10 @@ function docly_enqueue_admin_assets( $hook_suffix ) {
 	);
 
 	wp_enqueue_style( 'wp-components' );
+
+	if ( file_exists( DOCLY_PATH . 'build/index.css' ) ) {
+		wp_enqueue_style( 'docly-admin', DOCLY_URL . 'build/index.css', array( 'wp-components' ), $asset['version'] );
+		wp_style_add_data( 'docly-admin', 'rtl', 'replace' );
+	}
 }
 add_action( 'admin_enqueue_scripts', 'docly_enqueue_admin_assets' );

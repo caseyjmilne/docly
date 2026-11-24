@@ -11,8 +11,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$docly_docs    = docly_get_docs();
-$docly_current = docly_get_current_doc( $docly_docs );
+$docly_sections = docly_get_nav_sections();
+$docly_docs     = docly_get_docs( $docly_sections );
+$docly_current  = docly_get_current_doc( $docly_docs );
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -38,22 +39,27 @@ $docly_current = docly_get_current_doc( $docly_docs );
 
 <div class="docly-layout">
 	<nav class="docly-nav" aria-label="<?php esc_attr_e( 'Documentation', 'docly' ); ?>">
-		<?php if ( $docly_docs ) : ?>
-			<ul class="docly-nav__list">
-				<?php foreach ( $docly_docs as $docly_doc ) : ?>
-					<?php $docly_is_current = $docly_current && $docly_current->ID === $docly_doc->ID; ?>
-					<li class="docly-nav__item">
-						<a
-							class="docly-nav__link<?php echo $docly_is_current ? ' is-active' : ''; ?>"
-							href="<?php echo esc_url( docly_get_doc_url( $docly_doc ) ); ?>"
-							data-doc-id="<?php echo esc_attr( $docly_doc->ID ); ?>"
-							data-doc-slug="<?php echo esc_attr( $docly_doc->post_name ); ?>"
-							<?php echo $docly_is_current ? 'aria-current="page"' : ''; ?>
-						><?php echo esc_html( get_the_title( $docly_doc ) ); ?></a>
-					</li>
-				<?php endforeach; ?>
-			</ul>
-		<?php endif; ?>
+		<?php foreach ( $docly_sections as $docly_section ) : ?>
+			<div class="docly-nav__section">
+				<?php if ( $docly_section['group'] ) : ?>
+					<h2 class="docly-nav__heading"><?php echo esc_html( $docly_section['group']->name ); ?></h2>
+				<?php endif; ?>
+				<ul class="docly-nav__list">
+					<?php foreach ( $docly_section['docs'] as $docly_doc ) : ?>
+						<?php $docly_is_current = $docly_current && $docly_current->ID === $docly_doc->ID; ?>
+						<li class="docly-nav__item">
+							<a
+								class="docly-nav__link<?php echo $docly_is_current ? ' is-active' : ''; ?>"
+								href="<?php echo esc_url( docly_get_doc_url( $docly_doc ) ); ?>"
+								data-doc-id="<?php echo esc_attr( $docly_doc->ID ); ?>"
+								data-doc-slug="<?php echo esc_attr( $docly_doc->post_name ); ?>"
+								<?php echo $docly_is_current ? 'aria-current="page"' : ''; ?>
+							><?php echo esc_html( get_the_title( $docly_doc ) ); ?></a>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			</div>
+		<?php endforeach; ?>
 	</nav>
 
 	<main id="docly-docs" class="docly-main">

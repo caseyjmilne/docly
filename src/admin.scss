@@ -1,0 +1,166 @@
+.docly-admin__tabs .components-tab-panel__tabs {
+	margin-bottom: 16px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.docly-pos {
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.docly-pos__toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+
+.docly-pos__help {
+	margin: 0;
+	color: #646970;
+	font-size: 12px;
+}
+
+.docly-pos__save-status {
+	min-width: 60px;
+	color: #646970;
+	text-align: right;
+}
+
+.docly-pos__board {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 10px;
+	align-items: start;
+}
+
+.docly-pos__group {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+
+	&.is-dragging {
+		opacity: 0.4;
+	}
+
+	&.is-ungrouped {
+		background: #f6f7f7;
+		border-style: dashed;
+	}
+
+	&.is-overlay {
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		cursor: grabbing;
+	}
+}
+
+.docly-pos__group-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 8px;
+	border-bottom: 1px solid #f0f0f1;
+	font-weight: 600;
+
+	&[role="button"] {
+		cursor: grab;
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+		outline-offset: -2px;
+	}
+}
+
+.docly-pos__group-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.docly-pos__count {
+	padding: 0 6px;
+	border-radius: 9px;
+	background: #f0f0f1;
+	color: #50575e;
+	font-size: 11px;
+	font-weight: 400;
+}
+
+.docly-pos__docs {
+	min-height: 28px;
+	margin: 0;
+	padding: 4px;
+	list-style: none;
+
+	&.is-over {
+		background: #f0f6fc;
+	}
+}
+
+.docly-pos__doc-item {
+	margin: 0;
+	cursor: grab;
+	touch-action: none;
+
+	&.is-dragging {
+		opacity: 0.4;
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+		outline-offset: -2px;
+		border-radius: 3px;
+	}
+}
+
+.docly-pos__doc {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 6px;
+	border-radius: 3px;
+
+	&:hover {
+		background: #f6f7f7;
+	}
+
+	&.is-overlay {
+		background: #fff;
+		border: 1px solid #dcdcde;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		font-size: 12px;
+		cursor: grabbing;
+	}
+}
+
+.docly-pos__grip {
+	color: #a7aaad;
+	font-size: 10px;
+	letter-spacing: -2px;
+}
+
+.docly-pos__doc-title {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.docly-pos__status {
+	padding: 0 5px;
+	border-radius: 3px;
+	background: #fcf0e3;
+	color: #8a4d00;
+	font-size: 10px;
+}
+
+.docly-pos__empty {
+	padding: 4px 6px;
+	color: #a7aaad;
+	font-style: italic;
+}
