@@ -1,6 +1,27 @@
 .docly-header {
-	padding: 16px 24px;
 	border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+/* Header content shares the body's max width and side padding. */
+.docly-header__inner {
+	box-sizing: border-box;
+	max-width: var(--docly-max-width, 1200px);
+	margin: 0 auto;
+	padding: 16px 24px;
+}
+
+/* Flex keeps the logo/title link shrink-wrapped instead of spanning the row. */
+.docly-header__brand {
+	display: flex;
+	align-items: center;
+}
+
+.docly-header .custom-logo-link,
+.docly-header .site-title a {
+	display: inline-flex;
+	flex: 0 0 auto;
+	width: auto;
+	max-width: 100%;
 }
 
 .docly-header .site-title {
@@ -19,7 +40,8 @@
 	display: grid;
 	grid-template-columns: 260px minmax(0, 1fr);
 	gap: 32px;
-	max-width: 1200px;
+	box-sizing: border-box;
+	max-width: var(--docly-max-width, 1200px);
 	margin: 0 auto;
 	padding: 24px;
 }
@@ -97,6 +119,10 @@
 }
 
 @media (max-width: 782px) {
+	.docly-header__inner {
+		padding: 12px 16px;
+	}
+
 	.docly-layout {
 		grid-template-columns: 1fr;
 		gap: 16px;

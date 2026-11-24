@@ -150,6 +150,10 @@ function docly_enqueue_docs_assets() {
 	}
 
 	wp_enqueue_style( 'docly-docs', DOCLY_URL . 'assets/docs.css', array(), DOCLY_VERSION );
+	wp_add_inline_style(
+		'docly-docs',
+		sprintf( ':root { --docly-max-width: %dpx; }', docly_get_max_width() )
+	);
 
 	wp_enqueue_script(
 		'docly-docs',

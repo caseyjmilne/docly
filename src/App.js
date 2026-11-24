@@ -2,11 +2,13 @@ import { TabPanel } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import SettingsTab from './SettingsTab';
 import PositioningTab from './PositioningTab';
+import StylesTab from './StylesTab';
 import './admin.scss';
 
 const TABS = [
 	{ name: 'general', title: __( 'General', 'docly' ) },
 	{ name: 'positioning', title: __( 'Positioning', 'docly' ) },
+	{ name: 'styles', title: __( 'Styles', 'docly' ) },
 ];
 
 const TAB_KEY = 'docly-admin-tab';
@@ -36,13 +38,15 @@ export default function App() {
 				initialTabName={ getInitialTab() }
 				onSelect={ rememberTab }
 			>
-				{ ( tab ) =>
-					tab.name === 'positioning' ? (
-						<PositioningTab />
-					) : (
-						<SettingsTab />
-					)
-				}
+				{ ( tab ) => {
+					if ( tab.name === 'positioning' ) {
+						return <PositioningTab />;
+					}
+					if ( tab.name === 'styles' ) {
+						return <StylesTab />;
+					}
+					return <SettingsTab />;
+				} }
 			</TabPanel>
 		</div>
 	);

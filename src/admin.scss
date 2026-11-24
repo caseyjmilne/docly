@@ -221,3 +221,13 @@
 	color: #a7aaad;
 	font-style: italic;
 }
+
+.docly-styles__field {
+	max-width: 220px;
+}
+
+.docly-styles__actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 16px;
+}

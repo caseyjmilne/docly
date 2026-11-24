@@ -24,6 +24,23 @@ function docly_register_settings() {
 			'default'           => 0,
 		)
 	);
+
+	register_setting(
+		'docly',
+		DOCLY_OPTION_MAX_WIDTH,
+		array(
+			'type'              => 'integer',
+			'description'       => __( 'Docs layout max width in px.', 'docly' ),
+			'sanitize_callback' => 'docly_sanitize_max_width',
+			'show_in_rest'      => array(
+				'schema' => array(
+					'minimum' => DOCLY_MIN_MAX_WIDTH,
+					'maximum' => DOCLY_MAX_MAX_WIDTH,
+				),
+			),
+			'default'           => DOCLY_DEFAULT_MAX_WIDTH,
+		)
+	);
 }
 add_action( 'init', 'docly_register_settings' );
 
@@ -110,6 +127,20 @@ function docly_enqueue_admin_assets( $hook_suffix ) {
 		$asset['dependencies'],
 		$asset['version'],
 		true
+	);
+
+	wp_add_inline_script(
+		'docly-admin',
+		'window.doclyAdmin = ' . wp_json_encode(
+			array(
+				'maxWidth' => array(
+					'default' => DOCLY_DEFAULT_MAX_WIDTH,
+					'min'     => DOCLY_MIN_MAX_WIDTH,
+					'max'     => DOCLY_MAX_MAX_WIDTH,
+				),
+			)
+		) . ';',
+		'before'
 	);
 
 	wp_enqueue_style( 'wp-components' );

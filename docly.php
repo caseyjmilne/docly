@@ -27,6 +27,14 @@ define( 'DOCLY_URL', plugin_dir_url( __FILE__ ) );
  */
 define( 'DOCLY_OPTION_DOCS_PAGE', 'docly_docs_page_id' );
 
+/**
+ * Option key and default for the docs layout max width (px).
+ */
+define( 'DOCLY_OPTION_MAX_WIDTH', 'docly_max_width' );
+define( 'DOCLY_DEFAULT_MAX_WIDTH', 1200 );
+define( 'DOCLY_MIN_MAX_WIDTH', 320 );
+define( 'DOCLY_MAX_MAX_WIDTH', 3840 );
+
 require_once DOCLY_PATH . 'includes/post-types.php';
 require_once DOCLY_PATH . 'includes/positions.php';
 require_once DOCLY_PATH . 'includes/rest.php';
@@ -101,4 +109,30 @@ add_action( 'init', 'docly_load_textdomain' );
  */
 function docly_get_docs_page_id() {
 	return (int) get_option( DOCLY_OPTION_DOCS_PAGE, 0 );
+}
+
+/**
+ * Get the docs layout max width in px, falling back to the default.
+ *
+ * @return int
+ */
+function docly_get_max_width() {
+	return docly_sanitize_max_width( get_option( DOCLY_OPTION_MAX_WIDTH, DOCLY_DEFAULT_MAX_WIDTH ) );
+}
+
+/**
+ * Sanitize a max width: whole px, clamped to a sane range; empty/invalid
+ * values fall back to the default.
+ *
+ * @param mixed $value Raw value.
+ * @return int
+ */
+function docly_sanitize_max_width( $value ) {
+	$value = absint( $value );
+
+	if ( ! $value ) {
+		return DOCLY_DEFAULT_MAX_WIDTH;
+	}
+
+	return min( DOCLY_MAX_MAX_WIDTH, max( DOCLY_MIN_MAX_WIDTH, $value ) );
 }
