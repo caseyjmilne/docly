@@ -157,3 +157,49 @@ function docly_get_ordered_docs( $args = array() ) {
 		)
 	);
 }
+
+/**
+ * Map each doc to the group it is listed under: the first of its groups
+ * in group position order, or 0 when it has none.
+ *
+ * Used by both the Positioning board and the front-end nav so they match.
+ *
+ * @param WP_Post[] $docs   Docs.
+ * @param WP_Term[] $groups Groups in position order.
+ * @return int[] Doc ID => term ID (0 = ungrouped).
+ */
+function docly_get_primary_groups( $docs, $groups ) {
+	$rank = array();
+
+	foreach ( array_values( $groups ) as $index => $group ) {
+		$rank[ $group->term_id ] = $index;
+	}
+
+	$primary = array_fill_keys( wp_list_pluck( $docs, 'ID' ), 0 );
+
+	if ( ! $docs ) {
+		return $primary;
+	}
+
+	$relations = wp_get_object_terms(
+		array_keys( $primary ),
+		'doc_group',
+		array( 'fields' => 'all_with_object_id' )
+	);
+
+	if ( is_wp_error( $relations ) ) {
+		return $primary;
+	}
+
+	foreach ( $relations as $relation ) {
+		$doc_id  = (int) $relation->object_id;
+		$term_id = (int) $relation->term_id;
+		$current = $primary[ $doc_id ] ?? 0;
+
+		if ( isset( $rank[ $term_id ] ) && ( ! $current || $rank[ $term_id ] < $rank[ $current ] ) ) {
+			$primary[ $doc_id ] = $term_id;
+		}
+	}
+
+	return $primary;
+}

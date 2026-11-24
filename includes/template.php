@@ -49,52 +49,39 @@ function docly_is_docs_page() {
 }
 
 /**
- * Get the docs navigation: one section per doc group in position order,
- * then ungrouped docs. Empty sections are skipped.
+ * Get the docs navigation: one headed section per doc group in position
+ * order, each listing its docs in position order, then ungrouped docs last
+ * (group => null, rendered without a heading). Empty groups are skipped.
+ *
+ * Each doc appears once, under the same group the Positioning board shows.
  *
  * @return array[] Each item: array( 'group' => WP_Term|null, 'docs' => WP_Post[] ).
  */
 function docly_get_nav_sections() {
+	$groups  = docly_get_ordered_groups();
+	$docs    = docly_get_ordered_docs();
+	$primary = docly_get_primary_groups( $docs, $groups );
+
+	// Docs are already in position order, so bucketing keeps that order.
+	$buckets = array();
+	foreach ( $docs as $doc ) {
+		$buckets[ $primary[ $doc->ID ] ][] = $doc;
+	}
+
 	$sections = array();
-
-	foreach ( docly_get_ordered_groups() as $group ) {
-		$docs = docly_get_ordered_docs(
-			array(
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-				'tax_query' => array(
-					array(
-						'taxonomy'         => 'doc_group',
-						'terms'            => $group->term_id,
-						'include_children' => false,
-					),
-				),
-			)
-		);
-
-		if ( $docs ) {
+	foreach ( $groups as $group ) {
+		if ( ! empty( $buckets[ $group->term_id ] ) ) {
 			$sections[] = array(
 				'group' => $group,
-				'docs'  => $docs,
+				'docs'  => $buckets[ $group->term_id ],
 			);
 		}
 	}
 
-	$ungrouped = docly_get_ordered_docs(
-		array(
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-			'tax_query' => array(
-				array(
-					'taxonomy' => 'doc_group',
-					'operator' => 'NOT EXISTS',
-				),
-			),
-		)
-	);
-
-	if ( $ungrouped ) {
+	if ( ! empty( $buckets[0] ) ) {
 		$sections[] = array(
 			'group' => null,
-			'docs'  => $ungrouped,
+			'docs'  => $buckets[0],
 		);
 	}
 

@@ -77,32 +77,11 @@ function docly_rest_can_manage() {
  * @return array
  */
 function docly_get_structure() {
-	$groups      = docly_get_ordered_groups();
-	$group_order = array();
-
-	foreach ( $groups as $index => $group ) {
-		$group_order[ $group->term_id ] = $index;
-	}
-
-	$docs = docly_get_ordered_docs(
+	$groups  = docly_get_ordered_groups();
+	$docs    = docly_get_ordered_docs(
 		array( 'post_status' => array( 'publish', 'future', 'draft', 'pending', 'private' ) )
 	);
-
-	$doc_groups = array();
-
-	if ( $docs ) {
-		$relations = wp_get_object_terms(
-			wp_list_pluck( $docs, 'ID' ),
-			'doc_group',
-			array( 'fields' => 'all_with_object_id' )
-		);
-
-		if ( ! is_wp_error( $relations ) ) {
-			foreach ( $relations as $relation ) {
-				$doc_groups[ $relation->object_id ][] = $relation->term_id;
-			}
-		}
-	}
+	$primary = docly_get_primary_groups( $docs, $groups );
 
 	return array(
 		'groups' => array_map(
@@ -116,22 +95,12 @@ function docly_get_structure() {
 			$groups
 		),
 		'docs'   => array_map(
-			function ( $doc ) use ( $doc_groups, $group_order ) {
-				$primary = 0;
-				$best    = PHP_INT_MAX;
-
-				foreach ( $doc_groups[ $doc->ID ] ?? array() as $term_id ) {
-					if ( isset( $group_order[ $term_id ] ) && $group_order[ $term_id ] < $best ) {
-						$best    = $group_order[ $term_id ];
-						$primary = $term_id;
-					}
-				}
-
+			function ( $doc ) use ( $primary ) {
 				return array(
 					'id'     => $doc->ID,
 					'title'  => get_the_title( $doc ),
 					'status' => $doc->post_status,
-					'group'  => $primary,
+					'group'  => $primary[ $doc->ID ],
 				);
 			},
 			$docs
