@@ -36,6 +36,7 @@ require_once DOCLY_PATH . 'includes/template.php';
  */
 function docly_activate() {
 	docly_register_post_type();
+	docly_register_taxonomy();
 	docly_ensure_docs_page();
 	update_option( 'docly_version', DOCLY_VERSION );
 	flush_rewrite_rules();

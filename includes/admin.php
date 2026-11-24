@@ -40,6 +40,16 @@ function docly_add_admin_page() {
 		'dashicons-book'
 	);
 
+	// Taxonomy screens aren't added automatically when the post type lives under a custom menu.
+	$doc_group = get_taxonomy( 'doc_group' );
+	add_submenu_page(
+		'docly',
+		$doc_group->labels->name,
+		$doc_group->labels->menu_name,
+		$doc_group->cap->manage_terms,
+		'edit-tags.php?taxonomy=doc_group&post_type=doc'
+	);
+
 	// Same slug as the parent, so the settings app keeps the toplevel_page_docly hook.
 	add_submenu_page(
 		'docly',
@@ -51,6 +61,23 @@ function docly_add_admin_page() {
 	);
 }
 add_action( 'admin_menu', 'docly_add_admin_page' );
+
+/**
+ * Keep the Docly menu open and highlighted on the Doc Groups screens.
+ *
+ * @param string $parent_file Parent menu slug.
+ * @return string
+ */
+function docly_doc_group_parent_file( $parent_file ) {
+	$screen = get_current_screen();
+
+	if ( $screen && 'doc_group' === $screen->taxonomy ) {
+		return 'docly';
+	}
+
+	return $parent_file;
+}
+add_filter( 'parent_file', 'docly_doc_group_parent_file' );
 
 /**
  * Render the mount point for the React app.
