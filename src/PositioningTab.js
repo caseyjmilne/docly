@@ -291,33 +291,14 @@ function SortableGroup( { group, ...props } ) {
 	);
 }
 
-const COLLAPSED_KEY = 'docly-pos-collapsed';
-
-function loadCollapsed() {
-	try {
-		return JSON.parse( window.localStorage.getItem( COLLAPSED_KEY ) ) || [];
-	} catch ( e ) {
-		return [];
-	}
-}
-
-function storeCollapsed( keys ) {
-	try {
-		window.localStorage.setItem( COLLAPSED_KEY, JSON.stringify( keys ) );
-	} catch ( e ) {}
-}
-
 export default function PositioningTab() {
 	const [ board, setBoard ] = useState( null );
 	const [ activeId, setActiveId ] = useState( null );
 	const [ status, setStatus ] = useState( 'idle' );
 	const [ error, setError ] = useState( null );
-	const [ collapsed, setCollapsed ] = useState( loadCollapsed );
-
-	const updateCollapsed = ( keys ) => {
-		setCollapsed( keys );
-		storeCollapsed( keys );
-	};
+	// Groups always start open; collapsing is a temporary drag helper and
+	// is intentionally not remembered between visits.
+	const [ collapsed, updateCollapsed ] = useState( [] );
 
 	const toggle = ( key ) =>
 		updateCollapsed(
