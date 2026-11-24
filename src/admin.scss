@@ -231,3 +231,49 @@
 	gap: 8px;
 	margin-top: 16px;
 }
+
+.docly-styles__field + .docly-styles__field {
+	margin-top: 16px;
+}
+
+.docly-styles__color {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	max-width: 420px;
+
+	.components-base-control {
+		flex: 0 1 220px;
+	}
+
+	// Line up with the 40px input, below the label.
+	.docly-styles__swatch {
+		margin-top: 24px;
+	}
+
+	// 32px compact button centred on the 40px input.
+	.components-button {
+		margin-top: 28px;
+	}
+}
+
+.docly-styles__swatch {
+	flex: 0 0 auto;
+	width: 40px;
+	height: 40px;
+	box-sizing: border-box;
+	border: 1px solid #949494;
+	border-radius: 2px;
+
+	&.is-empty {
+		background:
+			linear-gradient(
+				to top right,
+				transparent calc(50% - 1px),
+				#cc1818 calc(50% - 1px),
+				#cc1818 calc(50% + 1px),
+				transparent calc(50% + 1px)
+			),
+			#fff;
+	}
+}

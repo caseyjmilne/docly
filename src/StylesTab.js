@@ -10,9 +10,12 @@ import {
 	Spinner,
 	__experimentalInputControl as InputControl,
 	__experimentalInputControlSuffixWrapper as InputControlSuffixWrapper,
+	TextControl,
 } from '@wordpress/components';
 
 const OPTION = 'docly_max_width';
+const BG_OPTION = 'docly_bg_color';
+const HEX = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 
 // InputControl shows its own draft while focused, so non-digits are
 // blocked before they reach the field rather than stripped afterwards.
@@ -43,15 +46,18 @@ const LIMITS = window.doclyAdmin?.maxWidth || {
 export default function StylesTab() {
 	// Kept as a string so the field can be empty while typing.
 	const [ maxWidth, setMaxWidth ] = useState( '' );
+	// Empty means inherit the theme background.
+	const [ bgColor, setBgColor ] = useState( '' );
 	const [ loading, setLoading ] = useState( true );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 
 	useEffect( () => {
 		apiFetch( { path: '/wp/v2/settings' } )
-			.then( ( settings ) =>
-				setMaxWidth( String( settings[ OPTION ] || LIMITS.default ) )
-			)
+			.then( ( settings ) => {
+				setMaxWidth( String( settings[ OPTION ] || LIMITS.default ) );
+				setBgColor( settings[ BG_OPTION ] || '' );
+			} )
 			.catch( ( error ) =>
 				setNotice( { status: 'error', message: error.message } )
 			)
@@ -59,7 +65,10 @@ export default function StylesTab() {
 	}, [] );
 
 	const value = parseInt( maxWidth, 10 );
-	const valid = value >= LIMITS.min && value <= LIMITS.max;
+	const widthValid = value >= LIMITS.min && value <= LIMITS.max;
+	const bgTrimmed = bgColor.trim();
+	const bgValid = bgTrimmed === '' || HEX.test( bgTrimmed );
+	const valid = widthValid && bgValid;
 
 	const save = () => {
 		setSaving( true );
@@ -68,10 +77,11 @@ export default function StylesTab() {
 		apiFetch( {
 			path: '/wp/v2/settings',
 			method: 'POST',
-			data: { [ OPTION ]: value },
+			data: { [ OPTION ]: value, [ BG_OPTION ]: bgTrimmed },
 		} )
 			.then( ( settings ) => {
 				setMaxWidth( String( settings[ OPTION ] ) );
+				setBgColor( settings[ BG_OPTION ] || '' );
 				setNotice( {
 					status: 'success',
 					message: __( 'Settings saved.', 'docly' ),
@@ -107,7 +117,7 @@ export default function StylesTab() {
 								<InputControl
 									label={ __( 'Max width', 'docly' ) }
 									help={
-										valid
+										widthValid
 											? sprintf(
 													/* translators: %d: default width in px */
 													__(
@@ -147,6 +157,49 @@ export default function StylesTab() {
 									__next40pxDefaultSize
 								/>
 							</div>
+							<div className="docly-styles__field docly-styles__color">
+								<TextControl
+									label={ __( 'Background color', 'docly' ) }
+									help={
+										bgValid
+											? __(
+													'Hex color, e.g. #ffffff. Leave empty to use the theme background.',
+													'docly'
+											  )
+											: __(
+													'Enter a hex color like #fff or #1e1e1e, or leave empty.',
+													'docly'
+											  )
+									}
+									placeholder={ __( 'Inherit from theme', 'docly' ) }
+									value={ bgColor }
+									onChange={ ( next ) => setBgColor( next.slice( 0, 9 ) ) }
+									spellCheck={ false }
+									autoComplete="off"
+									__next40pxDefaultSize
+									__nextHasNoMarginBottom
+								/>
+								<span
+									className={
+										'docly-styles__swatch' +
+										( bgTrimmed && bgValid ? '' : ' is-empty' )
+									}
+									style={
+										bgTrimmed && bgValid
+											? { background: bgTrimmed }
+											: undefined
+									}
+									aria-hidden="true"
+								/>
+								<Button
+									variant="tertiary"
+									size="compact"
+									onClick={ () => setBgColor( '' ) }
+									disabled={ saving || ! bgColor }
+								>
+									{ __( 'Clear', 'docly' ) }
+								</Button>
+							</div>
 							<div className="docly-styles__actions">
 								<Button
 									variant="primary"
@@ -165,7 +218,7 @@ export default function StylesTab() {
 										saving || value === LIMITS.default
 									}
 								>
-									{ __( 'Reset to default', 'docly' ) }
+									{ __( 'Reset width', 'docly' ) }
 								</Button>
 							</div>
 						</>

@@ -150,10 +150,22 @@ function docly_enqueue_docs_assets() {
 	}
 
 	wp_enqueue_style( 'docly-docs', DOCLY_URL . 'assets/docs.css', array(), DOCLY_VERSION );
-	wp_add_inline_style(
-		'docly-docs',
-		sprintf( ':root { --docly-max-width: %dpx; }', docly_get_max_width() )
-	);
+	$css = sprintf( ':root { --docly-max-width: %dpx; }', docly_get_max_width() );
+
+	$bg_color = docly_get_bg_color();
+	if ( $bg_color ) {
+		/*
+		 * Block themes print theme.json styles like body { background-color: ... }
+		 * (or :root :where(body)). body.docly-docs is more specific, and html is
+		 * set too so the canvas matches. Only printed on the Docs page.
+		 */
+		$css .= sprintf(
+			' html, html body.docly-docs { background-color: %1$s; background-image: none; }',
+			$bg_color
+		);
+	}
+
+	wp_add_inline_style( 'docly-docs', $css );
 
 	wp_enqueue_script(
 		'docly-docs',

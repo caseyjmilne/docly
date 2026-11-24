@@ -41,6 +41,18 @@ function docly_register_settings() {
 			'default'           => DOCLY_DEFAULT_MAX_WIDTH,
 		)
 	);
+
+	register_setting(
+		'docly',
+		DOCLY_OPTION_BG_COLOR,
+		array(
+			'type'              => 'string',
+			'description'       => __( 'Docs page background color (hex). Empty inherits the theme background.', 'docly' ),
+			'sanitize_callback' => 'docly_sanitize_bg_color',
+			'show_in_rest'      => true,
+			'default'           => '',
+		)
+	);
 }
 add_action( 'init', 'docly_register_settings' );
 

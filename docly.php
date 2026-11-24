@@ -35,6 +35,11 @@ define( 'DOCLY_DEFAULT_MAX_WIDTH', 1200 );
 define( 'DOCLY_MIN_MAX_WIDTH', 320 );
 define( 'DOCLY_MAX_MAX_WIDTH', 3840 );
 
+/**
+ * Option key for the docs page background color. Empty = inherit from theme.
+ */
+define( 'DOCLY_OPTION_BG_COLOR', 'docly_bg_color' );
+
 require_once DOCLY_PATH . 'includes/post-types.php';
 require_once DOCLY_PATH . 'includes/positions.php';
 require_once DOCLY_PATH . 'includes/rest.php';
@@ -135,4 +140,26 @@ function docly_sanitize_max_width( $value ) {
 	}
 
 	return min( DOCLY_MAX_MAX_WIDTH, max( DOCLY_MIN_MAX_WIDTH, $value ) );
+}
+
+/**
+ * Sanitize a background color: a hex color (#rgb, #rgba, #rrggbb or
+ * #rrggbbaa), or empty to inherit the theme background.
+ *
+ * @param mixed $value Raw value.
+ * @return string
+ */
+function docly_sanitize_bg_color( $value ) {
+	$value = strtolower( trim( (string) $value ) );
+
+	return preg_match( '/^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/', $value ) ? $value : '';
+}
+
+/**
+ * Get the docs page background color, or '' to inherit from the theme.
+ *
+ * @return string
+ */
+function docly_get_bg_color() {
+	return docly_sanitize_bg_color( get_option( DOCLY_OPTION_BG_COLOR, '' ) );
 }
